@@ -1,0 +1,157 @@
+_format_version: "2.1"
+_transform: true
+
+services:
+  - name: auth-service
+    url: http://auth-service:8000
+    routes:
+      - name: auth-routes
+        paths:
+          - /auth
+          - /auth/
+        strip_path: true
+    plugins:
+      - name: jwt
+        config:
+          header_names: ["Authorization"]
+          claims_to_verify:
+            - exp
+          key_claim_name: kid
+          secret_is_base64: false
+          maximum_expiration: 86400
+      - name: rate-limiting
+        config:
+          minute: 60
+          policy: local
+          fault_tolerant: true
+          hide_client_headers: false
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+          headers: ["Authorization", "Content-Type"]
+          exposed_headers: ["X-RateLimit-Limit", "X-RateLimit-Remaining"]
+          credentials: true
+          max_age: 600
+
+  - name: alerts-service
+    url: http://alerts-service:8000
+    routes:
+      - name: alerts-routes
+        paths:
+          - /alerts
+          - /alerts/
+        strip_path: true
+    plugins:
+      - name: jwt
+        config:
+          header_names: ["Authorization"]
+          claims_to_verify:
+            - exp
+          key_claim_name: kid
+          secret_is_base64: false
+          maximum_expiration: 86400
+      - name: rate-limiting
+        config:
+          minute: 120
+          policy: local
+          fault_tolerant: true
+          hide_client_headers: false
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+          headers: ["Authorization", "Content-Type"]
+          exposed_headers: ["X-RateLimit-Limit", "X-RateLimit-Remaining"]
+          credentials: true
+          max_age: 600
+
+  - name: messaging-service
+    url: http://messaging-service:8000
+    routes:
+      - name: messaging-routes
+        paths:
+          - /messages
+          - /messages/
+        strip_path: true
+    plugins:
+      - name: jwt
+        config:
+          header_names: ["Authorization"]
+          claims_to_verify:
+            - exp
+          key_claim_name: kid
+          secret_is_base64: false
+          maximum_expiration: 86400
+      - name: rate-limiting
+        config:
+          minute: 180
+          policy: local
+          fault_tolerant: true
+          hide_client_headers: false
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+          headers: ["Authorization", "Content-Type"]
+          exposed_headers: ["X-RateLimit-Limit", "X-RateLimit-Remaining"]
+          credentials: true
+          max_age: 600
+
+  - name: billing-service
+    url: http://billing-service:8000
+    routes:
+      - name: billing-routes
+        paths:
+          - /billing
+          - /billing/
+        strip_path: true
+    plugins:
+      - name: jwt
+        config:
+          header_names: ["Authorization"]
+          claims_to_verify:
+            - exp
+          key_claim_name: kid
+          secret_is_base64: false
+          maximum_expiration: 86400
+      - name: rate-limiting
+        config:
+          minute: 60
+          policy: local
+          fault_tolerant: true
+          hide_client_headers: false
+      - name: cors
+        config:
+          origins: ["*"]
+          methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+          headers: ["Authorization", "Content-Type"]
+          exposed_headers: ["X-RateLimit-Limit", "X-RateLimit-Remaining"]
+          credentials: true
+          max_age: 600
+
+plugins:
+  - name: cors
+    config:
+      origins: ["*"]
+      methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+      headers: ["Authorization", "Content-Type"]
+      exposed_headers: ["X-RateLimit-Limit", "X-RateLimit-Remaining"]
+      credentials: true
+      max_age: 600
+
+  - name: rate-limiting
+    config:
+      minute: 60
+      policy: local
+      fault_tolerant: true
+      hide_client_headers: false
+
+  - name: jwt
+    config:
+      header_names: ["Authorization"]
+      claims_to_verify:
+        - exp
+      key_claim_name: kid
+      secret_is_base64: false
+      maximum_expiration: 86400 
