@@ -50,4 +50,24 @@ web-build/
 .docker/
 
 # Kubernetes
+kubeconfig
+
+# Backups
+backups/
+*.zip
+*.bak
+
+# Mobile
+*.keystore
+*.jks
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build/
+
+# Docker
+.docker/
+
+# Kubernetes
 kubeconfig 
