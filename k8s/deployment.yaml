@@ -1,0 +1,102 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: safealert-dispatch
+  labels:
+    app: safealert-dispatch
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: safealert-dispatch
+  template:
+    metadata:
+      labels:
+        app: safealert-dispatch
+    spec:
+      containers:
+      - name: safealert-dispatch
+        image: safealert-dispatch:latest
+        ports:
+        - containerPort: 80
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 5
+          periodSeconds: 10
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 80
+          initialDelaySeconds: 15
+          periodSeconds: 20
+        env:
+        - name: REACT_APP_API_URL
+          valueFrom:
+            configMapKeyRef:
+              name: safealert-config
+              key: api-url
+        - name: REACT_APP_WEBSOCKET_URL
+          valueFrom:
+            configMapKeyRef:
+              name: safealert-config
+              key: websocket-url
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: safealert-dispatch
+spec:
+  selector:
+    app: safealert-dispatch
+  ports:
+  - port: 80
+    targetPort: 80
+  type: LoadBalancer
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: safealert-dispatch
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/use-regex: "true"
+    nginx.ingress.kubernetes.io/rewrite-target: /$2
+spec:
+  tls:
+  - hosts:
+    - safealert.example.com
+    secretName: safealert-tls
+  rules:
+  - host: safealert.example.com
+    http:
+      paths:
+      - path: /api(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: api-gateway
+            port:
+              number: 3001
+      - path: /socket.io(/|$)(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: api-gateway
+            port:
+              number: 3001
+      - path: /()(.*)
+        pathType: Prefix
+        backend:
+          service:
+            name: safealert-dispatch
+            port:
+              number: 80 
